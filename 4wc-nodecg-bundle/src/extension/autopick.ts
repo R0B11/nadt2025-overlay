@@ -1,5 +1,11 @@
-import { createLogger } from './util/nodecg';
-import { osuSongReplicant, tournamentMappool, tournamentPickBans, tournamentPickBansSettings } from './util/replicants';
+import { createLogger, get as nodecg } from './util/nodecg';
+import {
+  obsAutoAdvanceReplicant,
+  osuSongReplicant,
+  tournamentMappool,
+  tournamentPickBans,
+  tournamentPickBansSettings,
+} from './util/replicants';
 
 const logger = createLogger('autopick');
 

@@ -11,3 +11,6 @@ export * from './tournamentTeams';
 export * from './tournamentPickBans';
 export * from './tournamentPickBansSettings';
 export * from './tournamentSchedule';
+export * from './obsStatus';
+export * from './obs';
+export * from './obsAutoAdvanceSettings';

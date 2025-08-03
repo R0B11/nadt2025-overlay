@@ -1,6 +1,7 @@
-import type {
+import {
   CountdownReplicant,
   CurrentGosumemoryConnectionStatus,
+  CurrentOBSConnectionStatus,
   CurrentOsuSongOverrides,
   CurrentOsuSongReplicant,
   // CurrentRefereeHelperConnectionStatus,
@@ -19,6 +20,8 @@ import type {
   TournamentPicksAndBans,
   TournamentPicksAndBansSettings,
   TournamentScheduleData,
+  ConnectedOBSData,
+  OBSSceneAutoAdvanceSettings,
 } from '../types/schemas';
 
 export const namespace = '4wc-nodecg-bundle';
@@ -26,6 +29,9 @@ export const namespace = '4wc-nodecg-bundle';
 export interface ReplicantTypes {
   countdown: CountdownReplicant;
   gosumemoryStatus: CurrentGosumemoryConnectionStatus;
+  obsStatus: CurrentOBSConnectionStatus;
+  obsData: ConnectedOBSData,
+  obsAutoAdvanceSettings: OBSSceneAutoAdvanceSettings,
   // matches: MatchesReplicant;
   osuSong: CurrentOsuSongReplicant;
   osuSongOverrides: CurrentOsuSongOverrides;
@@ -51,6 +57,9 @@ export interface ReplicantTypes {
 export const replicantOptions = {
   countdown: { persistent: true },
   gosumemoryStatus: { persistent: true },
+  obsStatus: { persistent: true },
+  obsData: { persistent: false },
+  obsAutoAdvanceSettings: { persistent: true },
   matches: { persistent: true },
   osuSong: { persistent: false },
   osuSongOverrides: { persistent: true },
