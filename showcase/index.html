@@ -14,54 +14,62 @@
 <body>
 	<div class="main">
 		<div class="header" id="header">
-			<div class="textboxes">
-				<div class="custom textbox" id="custom"><span>CUSTOM MAP BY </span><span class="custom-mapper"
-						id="custom_mapper"></span></div>
-				<div class="custom textbox ezmult" id="ezmult"><span class="ez-multiplier"
-						id="ezmult_text"></span><span> EZ MULTIPLIER</span></div>
+			<div class="stage-container">
+				<div class="stage-name">GR. FINALS</div>
+				<div class="showcase-title stroke-text">SHOWCASE</div>
 			</div>
-			<div class="header-item now-playing"><span>NOW PLAYING</span><span id="now_playing"
-					class="header-item__value"></span></div>
-			<div class="header-item replayer"><span>REPLAY BY</span><span id="replayer"
-					class="header-item__value"></span></div>
+		</div>
+		<div class="replay-container" id="replay_container">
+			<div class="replay-title">REPLAY BY</div>
+			<div class="replay-name" id="replayer"></div>
 		</div>
 		<div class="footer">
+			<div class="now-playing-text stroke-text">NOW PLAYING</div>
 			<div class="map-background-container">
-				<div class="map-background" id="map_background"></div>
+				<div class="map-slot" id="slot">XX</div>
+				<div class="map-background-outer">
+					<div class="map-background" id="map_background"></div>
+					<div class="map-title-container">
+						<div class="map-title" id="title">Artist - Title</div>
+						<div class="map-diff" id="diff">[Diff] - By Mapper</div>
+					</div>
+				</div>
+				<svg width="0" height="0">
+					<defs>
+						<clipPath id="mapBackgroundClip" clipPathUnits="objectBoundingBox">
+							<path d="M0.854,0 L0,0 L0,1 L1,1 L0.893,0.134 C0.883,0.048,0.869,0,0.854,0 Z" />
+						</clipPath>
+					</defs>
+				</svg>
 			</div>
 			<div class="map-stats-container">
-				<div class="map-stats-background" id="map_stats_background"></div>
 				<div class="map-stats">
-					<div class="map-stats-title">
-						<div class="map-stats-title__item title-top">
-							<span id="artist"></span> - <span id="title"></span>
-						</div>
-						<div class="map-stats-title__item title-bottom">
-							[<span id="difficulty"></span>] by <span id="mapper"></span>
-						</div>
-					</div>
 					<div class="map-stats-attributes">
-						<div class="map-stats-attributes__item"><span>CS</span><span id="cs"
-								class="map-stats-attributes__item-value"></span></div>
-						<div class="map-stats-attributes__item"><span>AR</span><span id="ar"
-								class="map-stats-attributes__item-value"></span></div>
-						<div class="map-stats-attributes__item"><span>OD</span><span id="od"
-								class="map-stats-attributes__item-value"></span></div>
-						<div class="map-stats-attributes__item"><span>BPM</span><span id="bpm"
-								class="map-stats-attributes__item-value"></span></div>
-						<div class="map-stats-attributes__item"><span>LENGTH</span><span id="length"
-								class="map-stats-attributes__item-value"></span></div>
-						<div class="map-stats-attributes__item"><span>SR</span><span id="sr"
-								class="map-stats-attributes__item-value"></span><span
-								class="map-stats-attributes__item-value"><i class="fa-solid fa-star"></i></span></div>
+						<div class="map-stats-attributes__group">
+							<div class="map-stats-attributes__item"><span>SR</span><span id="sr"
+									class="map-stats-attributes__item-value">0.00</span></div>
+						</div>
+						<div class="map-stats-attributes__group">
+							<div class="map-stats-attributes__item"><span>LENGTH</span><span id="length"
+									class="map-stats-attributes__item-value">0:00</span></div>
+						</div>
+						<div class="map-stats-attributes__group">
+							<div class="map-stats-attributes__item"><span>CS</span><span id="cs"
+									class="map-stats-attributes__item-value">0.0</span></div>
+							<div class="map-stats-attributes__separator">/</div>
+							<div class="map-stats-attributes__item"><span>AR</span><span id="ar"
+									class="map-stats-attributes__item-value">0.0</span></div>
+							<div class="map-stats-attributes__separator">/</div>
+							<div class="map-stats-attributes__item"><span>OD</span><span id="od"
+									class="map-stats-attributes__item-value">0.0</span></div>
+							<div class="map-stats-attributes__separator">/</div>
+							<div class="map-stats-attributes__item"><span>BPM</span><span id="bpm"
+									class="map-stats-attributes__item-value">0</span></div>
+						</div>
 					</div>
 				</div>
 			</div>
-			<div class="logo-container">
-				<div class="logo"></div>
-			</div>
 		</div>
-		<div class="stage-name textbox" id="stage_name">SEMIFINALS MAPPOOL SHOWCASE</div>
 	</div>
 	<script src="index.js"></script>
 </body>

@@ -23,8 +23,8 @@ socket.onmessage = async event => {
 
 	if (cache.state !== data.state.number) {
 		cache.state = data.state.number;
-		if (cache.state !== 2) $('#header').css('opacity', 0);
-		else $('#header').css('opacity', 1);
+		if (cache.state !== 2) $('#replay_container').css('opacity', 0);
+		else $('#replay_container').css('opacity', 1);
 	}
 
 	if (mappool && cache.md5 !== data.beatmap.checksum && !cache.stats_updated) {
@@ -39,15 +39,16 @@ socket.onmessage = async event => {
 		cache.update_stats = false;
 
 		const map = mappool.find(m => m.beatmap_id === data.beatmap.id || m.md5 === cache.md5);
-		$('#now_playing').html(map?.identifier ?? 'XX');
+		$('#slot').text(map?.identifier ?? 'XX');
 
 		const mod_ = map?.mods || 'NM';
 		const stats = getModStats(data.beatmap.stats.cs.original, data.beatmap.stats.ar.original, data.beatmap.stats.od.original, 0, mod_);
 
-		$('#bpm').html(Math.round((map?.bpm || data.beatmap.stats.bpm.common) * 10) / 10);
-		$('#cs').html(Math.round((mod_ == 'FM' ? data.beatmap.stats.cs.original : map ? stats.cs : data.beatmap.stats.cs.converted) * 10) / 10);
-		$('#ar').html(Math.round((mod_ == 'FM' ? data.beatmap.stats.ar.original : map ? stats.ar : data.beatmap.stats.ar.converted) * 10) / 10);
-		$('#od').html(Math.round((mod_ == 'FM' ? data.beatmap.stats.od.original : map ? stats.od : data.beatmap.stats.od.converted) * 10) / 10);
+		const bpm_data = data.beatmap.stats.bpm;
+		$('#bpm').html(bpm_data.min === bpm_data.max ? bpm_data.min : `${bpm_data.min}-${bpm_data.max}`);
+		$('#cs').html((mod_ == 'FM' ? data.beatmap.stats.cs.original : map ? stats.cs : data.beatmap.stats.cs.converted).toFixed(1));
+		$('#ar').html((mod_ == 'FM' ? data.beatmap.stats.ar.original : map ? stats.ar : data.beatmap.stats.ar.converted).toFixed(1));
+		$('#od').html((mod_ == 'FM' ? data.beatmap.stats.od.original : map ? stats.od : data.beatmap.stats.od.converted).toFixed(1));
 		$('#sr').html((map?.sr || data.beatmap.stats.stars.total).toFixed(2));
 
 		let length_modifier = map ? (mod_?.includes('DT') ? 1.5 : 1) : data.resultsScreen.mods.name.includes('DT') || data.play.mods.name.includes('DT') ? 1.5 : 1;
@@ -58,34 +59,20 @@ socket.onmessage = async event => {
 
 		if (map?.beatmapset_id) {
 			$('#map_background').css('background-image', `url('https://assets.ppy.sh/beatmaps/${map?.beatmapset_id}/covers/cover@2x.jpg')`);
-			$('#map_stats_background').css('background-image', `url('https://assets.ppy.sh/beatmaps/${map?.beatmapset_id}/covers/cover@2x.jpg')`);
 		}
 		else {
 			const path = `http://${location.host}/Songs/${data.folders.beatmap}/${data.files.background}`.replace(/#/g, '%23').replace(/%/g, '%25').replace(/\\/g, '/');
-			$('#map_stats_background').css('background-image', `url('${path}')`);
 			$('#map_background').css('background-image', `url('${path}')`);
 		}
 
-		if (map?.custom) { $('#custom_mapper').text(map?.mapper ?? data.beatmap.mapper); $('#custom').addClass('visible'); }
-		else { $('#custom_mapper').text(''); $('#custom').removeClass('visible'); }
-
-		if (map?.mods === 'FM' && map?.ez_multiplier) {
-			$('#ezmult_text').text(`${map?.ez_multiplier.toFixed(2)}x`);
-			$('#ezmult').addClass('visible');
-		}
-		else { $('#ezmult_text').text(''); $('#ezmult').removeClass('visible'); }
-
-		$('#mapper').text(map?.mapper ?? data.beatmap.mapper);
+		$('#title').text(`${data.beatmap.artist} - ${data.beatmap.title}`);
+		$('#diff').text(`[${data.beatmap.version}] - By ${map?.mapper ?? data.beatmap.mapper}`);
 	}
 
 	if (cache.replayer !== data.play.playerName) {
 		cache.replayer = data.play.playerName;
 		$('#replayer').text(cache.replayer ?? 'Unknown');
 	}
-
-	if (cache.artist !== data.beatmap.artist) { cache.artist = data.beatmap.artist; $('#artist').text(cache.artist); }
-	if (cache.title !== data.beatmap.title) { cache.title = data.beatmap.title; $('#title').text(cache.title); }
-	if (cache.difficulty !== data.beatmap.version) { cache.difficulty = data.beatmap.version; $('#difficulty').text(cache.difficulty); }
 }
 
 const getModStats = (cs_raw, ar_raw, od_raw, hp_raw, mods) => {
