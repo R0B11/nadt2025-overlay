@@ -47,17 +47,28 @@
     font-weight: 900;
 }
 
+@font-face {
+    font-family: 'Uniwars';
+    src: url('../_shared/fonts/Uniwars-SemiBold.ttf');
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'Bahnschrift';
+    src: url('../_shared/fonts/Bahnschrift.ttf');
+}
+
 :root {
-    --accent: #e96479;
-    --dark: #4d455d;
-    --light: #f4dfc9;
-    --light-text: #faf3ec;
-    --accent-mod-nm: #759de7;
-    --accent-mod-hd: #eec875;
-    --accent-mod-hr: #e97777;
-    --accent-mod-dt: #ad73db;
-    --accent-mod-fm: #85e285;
-    --accent-mod-tb: #61cfc1;
+    --accent-blue: #191de7;
+    --accent-yellow: #f8ea00;
+    --dark: #272626;
+    --black: #0e0d0c;
+    --light: #fcfcfc;
+    --light-text: #fcfcfc;
+    --accent-mod-nm: #fcfcfc;
+    --accent-mod-hd: #faf163;
+    --accent-mod-hr: #fa7063;
+    --accent-mod-dt: #5255dd;
     --red: #e96479;
     --blue: #60a6f7;
     --red-chat: #f89c9b;
