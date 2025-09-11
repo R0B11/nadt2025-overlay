@@ -5,8 +5,7 @@ let mappool;
 	$.ajaxSetup({ cache: false });
 	let stage = await $.getJSON('../_data/beatmaps.json');
 	mappool = stage.beatmaps;
-	if (mappool) $('#stage_name').html(`${stage.stage} MAPPOOL SHOWCASE`).css('opacity', 1);
-	else $('#stage_name').html('').css('opacity', 0);
+	if (mappool) $('#stage_name').text(stage.stage);
 })();
 
 socket.onopen = () => { console.log('Successfully Connected'); };
