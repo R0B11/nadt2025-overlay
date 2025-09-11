@@ -1,61 +1,42 @@
 @font-face {
-    font-family: 'Mont';
-    src: url('../_shared/fonts/Mont-SemiBold.otf');
-    font-weight: 500;
-}
-
-@font-face {
-    font-family: 'Mont';
-    src: url('../_shared/fonts/Mont-Bold.otf');
-    font-weight: 700;
-}
-
-@font-face {
-    font-family: 'Din';
-    src: url('../_shared/fonts/D-DIN.otf');
-    font-weight: 500;
-}
-
-@font-face {
-    font-family: 'Din';
-    src: url('../_shared/fonts/D-DIN-Italic.otf');
-    font-weight: 500;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: 'Din';
-    src: url('../_shared/fonts/D-DIN-Bold.otf');
-    font-weight: 700;
-}
-
-@font-face {
-    font-family: 'Noto Sans';
-    src: url('../_shared/fonts/NotoSans-SemiBold.ttf');
-    font-weight: 600;
-}
-
-@font-face {
-    font-family: 'Noto Sans';
-    src: url('../_shared/fonts/NotoSans-ExtraBold.ttf');
-    font-weight: 800;
-}
-
-@font-face {
-    font-family: 'Noto Sans';
-    src: url('../_shared/fonts/NotoSans-Black.ttf');
-    font-weight: 900;
-}
-
-@font-face {
     font-family: 'Uniwars';
     src: url('../_shared/fonts/Uniwars-SemiBold.ttf');
     font-weight: 600;
 }
 
 @font-face {
+    font-family: 'Uniwars';
+    src: url('../_shared/fonts/Uniwars-Regular.ttf');
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'Uniwars';
+    src: url('../_shared/fonts/Uniwars-Light.ttf');
+    font-weight: 400;
+}
+
+@font-face {
     font-family: 'Bahnschrift';
     src: url('../_shared/fonts/Bahnschrift.ttf');
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../_shared/fonts/Inter_24pt-Regular.ttf');
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../_shared/fonts/Inter_24pt-SemiBold.ttf');
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../_shared/fonts/Inter_24pt-ExtraBold.ttf');
+    font-weight: 800;
 }
 
 :root {
@@ -69,9 +50,9 @@
     --accent-mod-hd: #faf163;
     --accent-mod-hr: #fa7063;
     --accent-mod-dt: #5255dd;
-    --red: #e96479;
-    --blue: #60a6f7;
-    --red-chat: #f89c9b;
-    --blue-chat: #96c4f8;
-    --unknown-chat: #bbb2ce;
+    --accent-mod-fm: #95dd52;
+    --red: #ff7f02;
+    --blue: #191de7;
+    --red-light: #faa363;
+    --blue-light: #5255dd;
 }
