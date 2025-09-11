@@ -13,16 +13,60 @@
 
 <body>
     <div class="main">
-        <div class="header"></div>
-        <div class="mappool-container" id="mappool_container"></div>
-        <div class="footer"></div>
+        <div class="logo"></div>
+        <div class="stage-container">
+            <div class="stage-name" id="stage_name">STAGE</div>
+        </div>
+        <div class="mappool-outer-container">
+            <div class="mappool-container" id="mappool_container"></div>
+        </div>
+        <div class="map-choices-container">
+            <div class="map-choices red">
+                <div class="map-choices-inner-container red">
+                    <div class="map-choice-title">PROTECTS</div>
+                    <div class="map-protects red" id="red_protects"></div>
+                </div>
+                <div class="map-choices-inner-container red">
+                    <div class="map-choice-title">PICKS</div>
+                    <div class="map-picks red" id="red_picks"></div>
+                </div>
+            </div>
+            <div class="map-choices blue">
+                <div class="map-choices-inner-container blue">
+                    <div class="map-choice-title">PROTECTS</div>
+                    <div class="map-protects blue" id="blue_protects"></div>
+                </div>
+                <div class="map-choices-inner-container blue">
+                    <div class="map-choice-title">PICKS</div>
+                    <div class="map-picks blue" id="blue_picks"></div>
+                </div>
+            </div>
+        </div>
+        <div class="chat-container" id="chat_container">
+            <div class="chat-title">CHAT</div>
+            <div class="chat" id="chat"></div>
+        </div>
+        <div class="footer">
+            <div class="team-container red">
+                <div class="team-name red" id="red_name">Team 1</div>
+                <div class="team-players red">
+                    <div class="team-player" id="player_1">PLAYER 1</div>
+                    <div class="team-player" id="player_2">PLAYER 2</div>
+                </div>
+            </div>
+            <div class="team-container blue">
+                <div class="team-name blue" id="blue_name">Team 2</div>
+                <div class="team-players blue">
+                    <div class="team-player" id="player_3">PLAYER 3</div>
+                    <div class="team-player" id="player_4">PLAYER 4</div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="controls">
         <div class="current-picker control-item red" id="current_pick">RED PICK</div>
         <div class="button switch-picker control-item" id="switch_picker" onclick="switchPick()">SWITCH PICK</div>
         <div class="button auto-pick control-item" id="auto_pick" onclick="switchAutoPick()">ENABLE AUTOPICK</div>
-
-        <hr>
 
         <div id="autoAdvanceSection">
             <div id="autoAdvanceButton" class="button control-item" onclick="switchAutoAdvance()">AUTO ADVANCE: OFF
@@ -32,7 +76,7 @@
             </div>
             <div id="cancelAdvanceButton" class="button control-item" onclick="cancelAdvance()">Cancel transition</div>
 
-            <br/><br/>
+            <br /><br />
 
             <div class="control-label">Scenes<br>(click to override)</div><br>
 

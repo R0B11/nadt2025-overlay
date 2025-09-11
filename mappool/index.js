@@ -1,22 +1,25 @@
-const obsGetCurrentScene = window.obsstudio?.getCurrentScene ?? (() => {});
-const obsGetScenes = window.obsstudio?.getScenes ?? (() => {});
-const obsSetCurrentScene = window.obsstudio?.setCurrentScene ?? (() => {});
-const obsGetControlLevel = window.obsstudio?.getControlLevel ?? (() => {});
+const DEBUG = false;
+
+const obsGetCurrentScene = window.obsstudio?.getCurrentScene ?? (() => { });
+const obsGetScenes = window.obsstudio?.getScenes ?? (() => { });
+const obsSetCurrentScene = window.obsstudio?.setCurrentScene ?? (() => { });
+const obsGetControlLevel = window.obsstudio?.getControlLevel ?? (() => { });
 
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 const beatmaps = new Set();
-let mappool;
+let mappool, teams;
 (async () => {
     $.ajaxSetup({ cache: false });
     mappool = await $.getJSON('../_data/beatmaps.json');
+    teams = await $.getJSON('../_data/teams.json');
+    if (mappool.stage) $('#stage_name').text(mappool.stage);
 })();
 
-let socket = new ReconnectingWebSocket('ws://' + location.host + '/ws');
-
-socket.onopen = () => { console.log('Successfully Connected'); };
-socket.onclose = event => { console.log('Socket Closed Connection: ', event); socket.send('Client Closed!'); };
-socket.onerror = error => { console.log('Socket Error: ', error); };
+const red_protects = new Set();
+const blue_protects = new Set();
+const red_picks = new Set();
+const blue_picks = new Set();
 
 let gameState;
 let hasSetup = false;
@@ -34,7 +37,7 @@ autoadvance_button.style.backgroundColor = '#fc9f9f';  // default to off
 let autoadvance_timer_container = document.getElementById('autoAdvanceTimer');
 let autoadvance_cancel_transition = document.getElementById('cancelAdvanceButton');
 let autoadvance_timer_label = document.getElementById('autoAdvanceTimerLabel');
-let autoadvance_timer_time = new CountUp('autoAdvanceTimerTime', 10, 0, 1, 10, {useEasing: false, suffix: 's'});
+let autoadvance_timer_time = new CountUp('autoAdvanceTimerTime', 10, 0, 1, 10, { useEasing: false, suffix: 's' });
 autoadvance_timer_container.style.opacity = '0';
 autoadvance_cancel_transition.style.opacity = '0';
 
@@ -58,7 +61,7 @@ const pick_to_transition_delay_ms = 10000;
 obsGetControlLevel(level => {
     // don't display auto advance if access level to OBS isn't sufficient
     if (level < 4) {
-        document.getElementById('autoAdvanceSection').style.display='none';
+        document.getElementById('autoAdvanceSection').style.display = 'none';
     }
 })
 
@@ -72,7 +75,7 @@ obsGetScenes(scenes => {
         let buttonNode = clone.querySelector('div');
         buttonNode.id = `scene__${scene}`;
         buttonNode.textContent = `GO TO: ${scene}`;
-        buttonNode.onclick = function() { obsSetCurrentScene(scene); };
+        buttonNode.onclick = function () { obsSetCurrentScene(scene); };
         sceneCollection.appendChild(clone);
     }
 
@@ -81,7 +84,7 @@ obsGetScenes(scenes => {
     });
 });
 
-window.addEventListener('obsSceneChanged', function(event) {
+window.addEventListener('obsSceneChanged', function (event) {
     let activeButton = document.getElementById(`scene__${event.detail.name}`);
 
     for (const scene of sceneCollection.children) {
@@ -97,14 +100,15 @@ class Beatmap {
         this.beatmap = beatmap;
     }
     generate() {
-        this.parent = $('<div></div>').addClass('map').attr('id', `map-${this.beatmap.identifier.toLowerCase()}`);
-        this.parent.append($('<div></div>').addClass('map-image').css('background-image', `url('https://assets.ppy.sh/beatmaps/${this.beatmap.beatmapset_id}/covers/cover.jpg')`));
+        this.parent = $('<div></div>').addClass(`map ${this.beatmap.mods.toLowerCase()}`).attr('id', `map-${this.beatmap.identifier.toLowerCase()}`);
+        this.image = $('<div></div>').addClass('map-image').css('background-image', `url('https://assets.ppy.sh/beatmaps/${this.beatmap.beatmapset_id}/covers/cover.jpg')`);
+        this.parent.append(this.image);
 
         const content = $('<div></div>').addClass('map-content');
-        this.picked_by_label = $('<div></div>').addClass('picked-by-label').attr('id', `picked-by-label-${this.beatmap.identifier.toLowerCase()}`);
-        content.append(this.picked_by_label);
         this.mod_icon = $('<div></div>').addClass(`mod-icon ${this.beatmap.mods.toLowerCase()}`).text(this.beatmap.identifier.toUpperCase());
         content.append(this.mod_icon);
+        this.banned_label = $('<div></div>').addClass(`ban-label ${this.beatmap.mods.toLowerCase()}`).text('BANNED');
+        this.parent.append(this.banned_label);
 
         const stats = $('<div></div>').addClass('map-stats');
         stats.append($('<div></div>').addClass('map-stats-section map-top').append($('<div></div>').addClass('map-title').text(`${this.beatmap.artist} - ${this.beatmap.title}`)));
@@ -121,23 +125,40 @@ class Beatmap {
     }
 }
 
+const socket = new ReconnectingWebSocket(DEBUG ? 'ws://127.0.0.1:24051/' : `ws://${location.host}/websocket/v2`);
+socket.onopen = () => { console.log('Successfully Connected'); };
+socket.onclose = event => { console.log('Socket Closed Connection: ', event); socket.send('Client Closed!'); };
+socket.onerror = error => { console.log('Socket Error: ', error); };
+
 socket.onmessage = async (event) => {
-    let data = JSON.parse(event.data);
+    const data = JSON.parse(event.data);
 
     if (mappool && !hasSetup) setupBeatmaps();
 
-    if (redName !== data.tourney.manager.teamName.left && data.tourney.manager.teamName.left) {
-        redName = data.tourney.manager.teamName.left || 'Red Team';
+    if (redName !== data.tourney.team.left && data.tourney.team.left) {
+        redName = data.tourney.team.left || 'Red Team';
+        $('#red_name').text(redName);
+        const team = teams?.find(e => e.name == redName);
+        if (team) {
+            $('#player_1').text(team.players[0]);
+            $('#player_2').text(team.players[1]);
+        }
     }
 
-    if (blueName !== data.tourney.manager.teamName.right && data.tourney.manager.teamName.right) {
-        blueName = data.tourney.manager.teamName.right || 'Blue Team';
+    if (blueName !== data.tourney.team.right && data.tourney.team.right) {
+        blueName = data.tourney.team.right || 'Blue Team';
+        $('#blue_name').text(blueName);
+        const team = teams?.find(e => e.name == blueName);
+        if (team) {
+            $('#player_3').text(team.players[0]);
+            $('#player_4').text(team.players[1]);
+        }
     }
 
-    if (mappool && tempMapID !== data.menu.bm.id && data.menu.bm.id !== 0) {
-        if (tempMapID === 0) tempMapID = data.menu.bm.id;
+    if (mappool && tempMapID !== data.beatmap.id && data.beatmap.id !== 0) {
+        if (tempMapID === 0) tempMapID = data.beatmap.id;
         else {
-            tempMapID = data.menu.bm.id;
+            tempMapID = data.beatmap.id;
             let pickedMap = Array.from(beatmaps).find(b => b.id === tempMapID);
             if (pickedMap && enableAutoPick && !selectedMaps.includes(tempMapID)) pickMap(pickedMap, currentPicker === 'red' ? redName : blueName, currentPicker);
         }
@@ -152,7 +173,7 @@ socket.onmessage = async (event) => {
  * @returns {Promise<void>}
  */
 async function transitionToMappool(data) {
-    let newState = data.tourney.manager.ipcState;
+    let newState = data.tourney.ipcState;
     if (enableAutoAdvance) {
         if (lastState === TourneyState.Ranking && newState === TourneyState.Idle) {
             sceneTransitionTimeoutID = setTimeout(() => {
@@ -185,20 +206,56 @@ async function setupBeatmaps() {
         const bm = new Beatmap(beatmap);
         bm.generate();
         bm.parent.on('click', event => {
-            if (!event.originalEvent.shiftKey) event.originalEvent.ctrlKey ? banMap(bm, redName, 'red') : pickMap(bm, redName, 'red');
-            else resetMap(bm);
+            if (event.originalEvent.shiftKey) resetMap(bm);
+            else if (event.originalEvent.ctrlKey) banMap(bm, 'red');
+            else if (event.originalEvent.altKey) protectMap(bm, 'red');
+            else pickMap(bm, 'red');
         });
         bm.parent.on('contextmenu', event => {
-            if (!event.originalEvent.shiftKey) event.originalEvent.ctrlKey ? banMap(bm, blueName, 'blue') : pickMap(bm, blueName, 'blue');
-            else resetMap(bm);
+            if (event.originalEvent.shiftKey) resetMap(bm);
+            else if (event.originalEvent.ctrlKey) banMap(bm, 'blue');
+            else if (event.originalEvent.altKey) protectMap(bm, 'blue');
+            else pickMap(bm, 'blue');
         });
         beatmaps.add(bm);
+    }
+
+    $('#red_protects').html('');
+    $('#blue_protects').html('');
+    $('#red_picks').html('');
+    $('#blue_picks').html('');
+
+    const protects = mappool.protects || 2;
+    const picks = mappool.picks || 6;
+
+    for (let i = 0; i < protects; i++) {
+        const red_protect = $('<div></div>').addClass('map-protect red').attr('id', `red_protect_${i}`);
+        red_protect.append($('<div></div>').addClass('map-choice-background').attr('id', `red_protect_${i}_bg`));
+        red_protect.append($('<div></div>').addClass('map-choice-text').attr('id', `red_protect_${i}_text`));
+        $('#red_protects').append(red_protect);
+
+        const blue_protect = $('<div></div>').addClass('map-protect blue').attr('id', `blue_protect_${i}`);
+        blue_protect.append($('<div></div>').addClass('map-choice-background').attr('id', `blue_protect_${i}_bg`));
+        blue_protect.append($('<div></div>').addClass('map-choice-text').attr('id', `blue_protect_${i}_text`));
+        $('#blue_protects').append(blue_protect);
+    }
+
+    for (let i = 0; i < picks; i++) {
+        const red_pick = $('<div></div>').addClass('map-pick red').attr('id', `red_pick_${i}`);
+        red_pick.append($('<div></div>').addClass('map-choice-background').attr('id', `red_pick_${i}_bg`));
+        red_pick.append($('<div></div>').addClass('map-choice-text').attr('id', `red_pick_${i}_text`));
+        $('#red_picks').append(red_pick);
+
+        const blue_pick = $('<div></div>').addClass('map-pick blue').attr('id', `blue_pick_${i}`);
+        blue_pick.append($('<div></div>').addClass('map-choice-background').attr('id', `blue_pick_${i}_bg`));
+        blue_pick.append($('<div></div>').addClass('map-choice-text').attr('id', `blue_pick_${i}_text`));
+        $('#blue_picks').append(blue_pick);
     }
 }
 
 const getDataSet = (stored_beatmaps, beatmap_id) => stored_beatmaps.find(b => b.beatmap_id == beatmap_id) || null;
 
-const pickMap = (bm, teamName, color) => {
+const pickMap = (bm, color) => {
     if (lastPicked !== null) lastPicked.blink_overlay.css('animation', 'none');
     lastPicked = bm;
     switchPick(color);
@@ -206,14 +263,18 @@ const pickMap = (bm, teamName, color) => {
     if (bm.beatmap.mods.includes('TB')) {
         localStorage.setItem('current_pick', '');
         bm.parent.addClass(`picked`).removeClass('banned red blue');
-        bm.picked_by_label.text('Tiebreaker').addClass(`picked`).removeClass('banned red blue');
     }
     else {
         localStorage.setItem('current_pick', `${bm.id}/${color.toLowerCase()}`);
         bm.parent.addClass(`picked ${color}`).removeClass(`banned ${opposite_team(color)}`);
-        bm.picked_by_label.text(`Picked by ${teamName}`).addClass(`picked ${color}`).removeClass(`banned ${opposite_team(color)}`);
+
+        const picks = color == 'red' ? red_picks : blue_picks;
+        if (!picks.has(bm)) {
+            picks.add(bm);
+            addPickHistory(bm, color, picks.size - 1);
+        }
     }
-    
+
     bm.mod_icon.removeClass('banned');
     bm.blink_overlay.css('animation', 'blinker 1s cubic-bezier(.36,.06,.01,.57) 300ms 8, slowPulse 5000ms ease-in-out 8000ms 18');
     selectedMaps.push(bm.beatmapID);
@@ -224,10 +285,10 @@ const pickMap = (bm, teamName, color) => {
             cancelAdvance();
             clearTimeout(selectedMapsTransitionTimeout[bm.beatmapID]?.timeoutId)
             const newTimeoutId = setTimeout(() => {
-                    obsSetCurrentScene(gameplay_scene_name);
-                    autoadvance_timer_container.style.opacity = '0';
-                    autoadvance_cancel_transition.style.opacity = '0';
-                }, pick_to_transition_delay_ms);
+                obsSetCurrentScene(gameplay_scene_name);
+                autoadvance_timer_container.style.opacity = '0';
+                autoadvance_cancel_transition.style.opacity = '0';
+            }, pick_to_transition_delay_ms);
             selectedMapsTransitionTimeout[bm.beatmapID] = {
                 color: color,
                 timeoutId: newTimeoutId
@@ -235,7 +296,7 @@ const pickMap = (bm, teamName, color) => {
 
             autoadvance_timer_time = new CountUp('autoAdvanceTimerTime',
                 pick_to_transition_delay_ms / 1000, 0, 1, pick_to_transition_delay_ms / 1000,
-                {useEasing: false, suffix: 's'});
+                { useEasing: false, suffix: 's' });
             autoadvance_timer_time.start();
             autoadvance_timer_container.style.opacity = '1';
             autoadvance_timer_label.textContent = `Switching to ${gameplay_scene_name} in`;
@@ -249,32 +310,54 @@ const pickMap = (bm, teamName, color) => {
             }
         }
     }
-}
+};
 
-const banMap = (bm, teamName, color) => {
+const addPickHistory = (bm, color, index) => {
+    $(`#${color}_pick_${index}_text`).text(bm.beatmap.identifier);
+    $(`#${color}_pick_${index}_bg`).css('background-image', bm.image.css('background-image'));
+};
+
+const banMap = (bm, color) => {
+    if (bm.beatmap.mods.includes('TB')) return;
+    resetMap(bm);
+
+    bm.parent.addClass(`banned ${color}`);
+    bm.banned_label.addClass('visible');
+    selectedMaps.push(bm.beatmapID);
+};
+
+const protectMap = (bm, color) => {
     if (bm.beatmap.mods.includes('TB')) return;
 
-    bm.parent.addClass(`banned ${color}`).removeClass(`picked ${opposite_team(color)}`);
-    bm.picked_by_label.text(`Banned by ${teamName}`).addClass(`banned ${color}`).removeClass(`picked ${opposite_team(color)}`);
-    bm.blink_overlay.css('animation', 'none');
-    bm.mod_icon.addClass('banned');
-    selectedMaps.push(bm.beatmapID);
-}
+    console.log(bm);
+
+    const protects = color == 'red' ? red_protects : blue_protects;
+    if (!protects.has(bm)) {
+        protects.add(bm);
+        console.log(`#${color}_protect_${protects.size - 1}_text`);
+        $(`#${color}_protect_${protects.size - 1}_text`).text(bm.beatmap.identifier);
+        $(`#${color}_protect_${protects.size - 1}_bg`).css('background-image', bm.image.css('background-image'));
+    }
+};
 
 const resetMap = bm => {
     localStorage.setItem('current_pick', '');
 
     bm.parent.removeClass('banned picked red blue');
-    bm.picked_by_label.text('').removeClass('banned picked red blue');
     bm.blink_overlay.css('animation', 'none');
     bm.mod_icon.removeClass('banned');
+    bm.banned_label.removeClass('visible');
     selectedMaps = selectedMaps.filter(e => e !== bm.beatmapID);
-}
+    red_picks.delete(bm);
+    blue_picks.delete(bm);
+    red_protects.delete(bm);
+    blue_protects.delete(bm);
+};
 
 const switchPick = color => {
     currentPicker = color ? opposite_team(color) : opposite_team(currentPicker);
     $('#current_pick').text(`${currentPicker.toUpperCase()} PICK`).addClass(currentPicker).removeClass(opposite_team(currentPicker));
-}
+};
 
 const switchAutoPick = () => {
     if (enableAutoPick) {
@@ -285,7 +368,7 @@ const switchAutoPick = () => {
         enableAutoPick = true;
         $('#auto_pick').text('DISABLE AUTOPICK').addClass('enabled');
     }
-}
+};
 
 const switchAutoAdvance = () => {
     if (enableAutoAdvance) {
@@ -298,11 +381,11 @@ const switchAutoAdvance = () => {
         autoadvance_button.innerHTML = 'AUTO ADVANCE: ON';
         autoadvance_button.style.backgroundColor = '#9ffcb3';
     }
-}
+};
 
 var cancelAdvance = () => {
     // do nothing at first, wait to have a cancel action assigned to it
-}
+};
 
 const TourneyState = {
     'Initialising': 0,
@@ -310,7 +393,7 @@ const TourneyState = {
     'WaitingForClients': 2,
     'Playing': 3,
     'Ranking': 4,
-}
+};
 
 /**
  * @typedef  {{
