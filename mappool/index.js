@@ -20,6 +20,8 @@ const red_protects = new Set();
 const blue_protects = new Set();
 const red_picks = new Set();
 const blue_picks = new Set();
+const red_bans = new Set();
+const blue_bans = new Set();
 
 let gameState;
 let hasSetup = false;
@@ -191,7 +193,7 @@ async function transitionToMappool(data) {
     lastState = newState;
 }
 
-async function setupBeatmaps() {
+const setupBeatmaps = () => {
     hasSetup = true;
     const maps = mappool.beatmaps;
     if (!maps || maps.length == 0) return;
@@ -222,36 +224,29 @@ async function setupBeatmaps() {
 
     $('#red_protects').html('');
     $('#blue_protects').html('');
+    $('#red_bans').html('');
+    $('#blue_bans').html('');
     $('#red_picks').html('');
     $('#blue_picks').html('');
 
-    const protects = mappool.protects || 2;
-    const picks = mappool.picks || 6;
+    addMapBoxes('protect', mappool.protects || 1);
+    addMapBoxes('ban', mappool.bans || 2);
+    addMapBoxes('pick', mappool.picks || 6);
+};
 
-    for (let i = 0; i < protects; i++) {
-        const red_protect = $('<div></div>').addClass('map-protect red').attr('id', `red_protect_${i}`);
-        red_protect.append($('<div></div>').addClass('map-choice-background').attr('id', `red_protect_${i}_bg`));
-        red_protect.append($('<div></div>').addClass('map-choice-text').attr('id', `red_protect_${i}_text`));
-        $('#red_protects').append(red_protect);
-
-        const blue_protect = $('<div></div>').addClass('map-protect blue').attr('id', `blue_protect_${i}`);
-        blue_protect.append($('<div></div>').addClass('map-choice-background').attr('id', `blue_protect_${i}_bg`));
-        blue_protect.append($('<div></div>').addClass('map-choice-text').attr('id', `blue_protect_${i}_text`));
-        $('#blue_protects').append(blue_protect);
+const addMapBoxes = (type, count) => {
+    for (let i = 0; i < count; i++) {
+        addMapBox('red', type, i); addMapBox('blue', type, i);
     }
+};
 
-    for (let i = 0; i < picks; i++) {
-        const red_pick = $('<div></div>').addClass('map-pick red').attr('id', `red_pick_${i}`);
-        red_pick.append($('<div></div>').addClass('map-choice-background').attr('id', `red_pick_${i}_bg`));
-        red_pick.append($('<div></div>').addClass('map-choice-text').attr('id', `red_pick_${i}_text`));
-        $('#red_picks').append(red_pick);
-
-        const blue_pick = $('<div></div>').addClass('map-pick blue').attr('id', `blue_pick_${i}`);
-        blue_pick.append($('<div></div>').addClass('map-choice-background').attr('id', `blue_pick_${i}_bg`));
-        blue_pick.append($('<div></div>').addClass('map-choice-text').attr('id', `blue_pick_${i}_text`));
-        $('#blue_picks').append(blue_pick);
-    }
-}
+const addMapBox = (color, type, index) => {
+    console.log(`Adding ${color} ${type} index ${index} / to #${color}_${type}s`);
+    const obj = $('<div></div>').addClass(`map-${type} ${color}`).attr('id', `${color}_${type}_${index}`);
+    obj.append($('<div></div>').addClass('map-choice-background').attr('id', `${color}_${type}_${index}_bg`));
+    obj.append($('<div></div>').addClass('map-choice-text').attr('id', `${color}_${type}_${index}_text`));
+    $(`#${color}_${type}s`).append(obj);
+};
 
 const getDataSet = (stored_beatmaps, beatmap_id) => stored_beatmaps.find(b => b.beatmap_id == beatmap_id) || null;
 
@@ -324,12 +319,18 @@ const banMap = (bm, color) => {
     bm.parent.addClass(`banned ${color}`);
     bm.banned_label.addClass('visible');
     selectedMaps.push(bm.beatmapID);
+
+    const bans = color == 'red' ? red_bans : blue_bans;
+    if (!bans.has(bm)) {
+        bans.add(bm);
+        console.log(`#${color}_ban_${bans.size - 1}_text`);
+        $(`#${color}_ban_${bans.size - 1}_text`).text(bm.beatmap.identifier);
+        $(`#${color}_ban_${bans.size - 1}_bg`).css('background-image', bm.image.css('background-image'));
+    }
 };
 
 const protectMap = (bm, color) => {
     if (bm.beatmap.mods.includes('TB')) return;
-
-    console.log(bm);
 
     const protects = color == 'red' ? red_protects : blue_protects;
     if (!protects.has(bm)) {

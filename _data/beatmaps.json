@@ -1,6 +1,7 @@
 {
   "stage": "Round of 32",
   "protects": 1,
+  "bans": 1,
   "picks": 4,
   "beatmaps": [
     {
