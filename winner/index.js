@@ -1,55 +1,32 @@
-let comingup, teams, mappool;
+let teams, mappool;
 (async () => {
 	$.ajaxSetup({ cache: false });
-	comingup = await $.getJSON('../_data/coming_up.json');
 	teams = await $.getJSON('../_data/teams.json');
 	mappool = await $.getJSON('../_data/beatmaps.json');
-	if (mappool?.stage) $('#title').text(mappool.stage.toUpperCase());
+	if (mappool?.stage) $('#stage_name').text(mappool.stage);
 })();
 
-const update_team = (color, team) => {
-	$(`#name_${color}`).text(team.team);
-	$(`#flag_${color}`).css('background-image', `url('../_shared/assets/flags/${team.flag}.png')`);
-	$(`#players_${color}`).html('');
-	const players = team.players.sort((a, b) => b.captain - a.captain);
-	console.log(players);
-	for (const player of players) {
-		$(`#players_${color}`).append($('<div></div>').addClass('team-player').text(player.username));
-	}
-}
-
-let socket = new ReconnectingWebSocket('ws://' + location.host + '/ws');
-
+const cache = {};
+const socket = new ReconnectingWebSocket('ws://' + location.host + '/websocket/v2');
 socket.onopen = () => { console.log('Successfully Connected'); };
 socket.onclose = event => { console.log('Socket Closed Connection: ', event); socket.send('Client Closed!'); };
 socket.onerror = error => { console.log('Socket Error: ', error); };
 
-let artist, title;
-let points_r, points_b;
 socket.onmessage = async event => {
-	let data = JSON.parse(event.data);
+	const data = JSON.parse(event.data);
 
-	if (artist !== data.menu.bm.metadata.artist || title !== data.menu.bm.metadata.title) {
-		artist = data.menu.bm.metadata.artist;
-		title = data.menu.bm.metadata.title;
-		$('#song_title_container').css('opacity', 0);
-		await delay(300);
-		$('#song_artist').text(artist);
-		$('#song_title').text(title);
-		$('#song_title_container').css('opacity', 1);
-	}
-
-	if (teams && (points_r !== data.tourney.manager.stars.left || points_b !== data.tourney.manager.stars.right)) {
-		points_r = data.tourney.manager.stars.left;
-		points_b = data.tourney.manager.stars.right;
-		const red_team = teams.find(team => team.team === data.tourney.manager.teamName.left);
-		const blue_team = teams.find(team => team.team === data.tourney.manager.teamName.right);
+	if (teams && (cache.points_r !== data.tourney.points.left || cache.points_b !== data.tourney.points.right)) {
+		cache.points_r = data.tourney.points.left;
+		cache.points_b = data.tourney.points.right;
+		const red_team = teams.find(team => team.name === data.tourney.team.left);
+		const blue_team = teams.find(team => team.name === data.tourney.team.right);
 
 		if (red_team && blue_team) {
-			update_team('red', red_team);
-			update_team('blue', blue_team);
-			$('#score_red').text([points_r]);
-			$('#score_blue').text([points_b]);
+			const team = cache.points_r > cache.points_b ? red_team : blue_team;
+			$('#team_name').text(team.name);
+			$('#player1').text(team.players[0]);
+			$('#player2').text(team.players[1]);
+			$('#scoreline').text(cache.points_r > cache.points_b ? `${cache.points_r} - ${cache.points_b}` : `${cache.points_b} - ${cache.points_r}`);
 		}
 	}
-}
+};

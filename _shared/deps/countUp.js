@@ -38,7 +38,8 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 		formattingFn: formatNumber, // optional custom formatting function, default is formatNumber above
 		prefix: '', // optional text before the result
 		suffix: '', // optional text after the result
-		numerals: [] // optionally pass an array of custom numerals for 0-9
+		numerals: [], // optionally pass an array of custom numerals for 0-9
+		pad: 0
 	};
 
 	// extend default options with passed options object
@@ -109,7 +110,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 				return self.options.numerals[+w];
 			})
 		}
-		return (neg ? '-' : '') + self.options.prefix + x1 + x2 + self.options.suffix;
+		return (neg ? '-' : '') + self.options.prefix + (x1 + x2).padStart(self.options.pad, '0') + self.options.suffix;
 	}
 	// Robert Penner's easeOutExpo
 	function easeOutExpo(t, b, c, d) {
