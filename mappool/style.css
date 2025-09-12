@@ -137,12 +137,11 @@ html {
     padding-right: 8px;
 }
 
-.map-protects {
+.map-protects, .map-picks, .map-bans {
     display: flex;
 }
 
 .map-picks {
-    display: flex;
     flex-direction: column;
 }
 
@@ -163,7 +162,8 @@ html {
 }
 
 .map-pick,
-.map-protect {
+.map-protect,
+.map-ban {
     position: relative;
     display: flex;
     justify-content: center;
@@ -173,18 +173,18 @@ html {
     overflow: hidden;
 }
 
-.map-protect {
+.map-protect, .map-ban {
     font-size: 18px;
     width: 68px;
     height: 68px;
     border: 1px solid var(--accent-yellow);
 }
 
-.map-protect.red {
+.map-protect.red, .map-ban.red {
     border-left: none;
 }
 
-.map-protect.blue {
+.map-protect.blue, .map-ban.blue {
     border-right: none;
 }
 
