@@ -7,6 +7,8 @@ const obsGetControlLevel = window.obsstudio?.getControlLevel ?? (() => { });
 
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+const cache = {};
+
 const beatmaps = new Set();
 let mappool, teams;
 (async () => {
