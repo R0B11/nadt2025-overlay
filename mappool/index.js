@@ -337,13 +337,16 @@ const addPickHistory = (bm, color, index) => {
 
 const banMap = (bm, color) => {
     if (bm.beatmap.mods.includes('TB')) return;
+
+    const bans = color === 'red' ? red_bans : blue_bans;
+    if (bans.size >= (mappool.bans || 0)) return;
+
     resetMap(bm);
 
     bm.parent.addClass(`banned ${color}`);
     bm.banned_label.addClass('visible');
     selectedMaps.push(bm.beatmapID);
 
-    const bans = color === 'red' ? red_bans : blue_bans;
     if (!bans.has(bm)) {
         bans.add(bm);
         console.log(`#${color}_ban_${bans.size - 1}_text`);
