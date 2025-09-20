@@ -382,6 +382,8 @@ const protectMap = (bm, color) => {
 
     const protects = color === 'red' ? red_protects : blue_protects;
 
+    if (protects.size >= (mappool.protects || 0)) return;
+
     if (!protects.has(bm)) {
         protects.add(bm);
         renderProtects(color);
