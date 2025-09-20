@@ -6,7 +6,7 @@ let mappool;
 (async () => {
 	$.ajaxSetup({ cache: false });
 	let stage = await $.getJSON('../_data/beatmaps.json');
-	mappool = stage.beatmaps;
+	mappool = stage;
 	if (stage.stage) $('#stage_name').text(stage.stage);
 })();
 
