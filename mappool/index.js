@@ -15,7 +15,9 @@ let mappool, teams;
     $.ajaxSetup({ cache: false });
     mappool = await $.getJSON('../_data/beatmaps.json');
     teams = await $.getJSON('../_data/teams.json');
+
     if (mappool.stage) $('#stage_name').text(mappool.stage);
+    if (mappool) setupBeatmaps();
 })();
 
 const red_protects = new Set();
@@ -26,7 +28,6 @@ const red_bans = new Set();
 const blue_bans = new Set();
 
 let gameState;
-let hasSetup = false;
 let lastPicked = null;
 let redName = 'Red Team', blueName = 'Blue Team';
 let tempMapID = 0;
@@ -137,8 +138,6 @@ socket.onerror = error => { console.log('Socket Error: ', error); };
 socket.onmessage = async (event) => {
     const data = JSON.parse(event.data);
 
-    if (mappool && !hasSetup) setupBeatmaps();
-
     if (redName !== data.tourney.team.left && data.tourney.team.left) {
         redName = data.tourney.team.left || 'Red Team';
         $('#red_name').text(redName);
@@ -221,7 +220,6 @@ async function transitionToMappool(data) {
 }
 
 const setupBeatmaps = () => {
-    hasSetup = true;
     const maps = mappool.beatmaps;
     if (!maps || maps.length == 0) return;
 
@@ -275,8 +273,6 @@ const addMapBox = (color, type, index) => {
     $(`#${color}_${type}s`).append(obj);
 };
 
-const getDataSet = (stored_beatmaps, beatmap_id) => stored_beatmaps.find(b => b.beatmap_id == beatmap_id) || null;
-
 const pickMap = (bm, color) => {
     if (lastPicked !== null) lastPicked.blink_overlay.css('animation', 'none');
     lastPicked = bm;
@@ -290,10 +286,10 @@ const pickMap = (bm, color) => {
         localStorage.setItem('current_pick', `${bm.id}/${color.toLowerCase()}`);
         bm.parent.addClass(`picked ${color}`).removeClass(`banned ${opposite_team(color)}`);
 
-        const picks = color == 'red' ? red_picks : blue_picks;
+        const picks = color === 'red' ? red_picks : blue_picks;
         if (!picks.has(bm)) {
             picks.add(bm);
-            addPickHistory(bm, color, picks.size - 1);
+            renderPicks(color);
         }
     }
 
@@ -341,30 +337,59 @@ const addPickHistory = (bm, color, index) => {
 
 const banMap = (bm, color) => {
     if (bm.beatmap.mods.includes('TB')) return;
+
+    const bans = color === 'red' ? red_bans : blue_bans;
+    if (bans.size >= (mappool.bans || 0)) return;
+
     resetMap(bm);
 
     bm.parent.addClass(`banned ${color}`);
     bm.banned_label.addClass('visible');
     selectedMaps.push(bm.beatmapID);
 
-    const bans = color == 'red' ? red_bans : blue_bans;
     if (!bans.has(bm)) {
         bans.add(bm);
         console.log(`#${color}_ban_${bans.size - 1}_text`);
-        $(`#${color}_ban_${bans.size - 1}_text`).text(bm.beatmap.identifier);
-        $(`#${color}_ban_${bans.size - 1}_bg`).css('background-image', bm.image.css('background-image'));
+        renderBans(color);
     }
 };
+
+const renderPickBans = (kind, color) => {
+    // kind: 'protect', 'ban', or 'pick'
+    // color: 'red' or 'blue'
+    const sets = {
+        red:   { protect: red_protects, ban: red_bans, pick: red_picks },
+        blue:  { protect: blue_protects, ban: blue_bans, pick: blue_picks },
+    };
+
+    const slots = sets[color][kind];
+
+    // clear all
+    $(`[id^=${color}_${kind}_][id$=_text]`).text('');
+    $(`[id^=${color}_${kind}_][id$=_bg]`).css('background-image', '');
+
+    let i = 0;
+    for (const bm of slots) {
+        $(`#${color}_${kind}_${i}_text`).text(bm.beatmap.identifier);
+        $(`#${color}_${kind}_${i}_bg`).css('background-image', bm.image.css('background-image'));
+        i++;
+    }
+};
+
+const renderProtects = (color) => renderPickBans('protect', color);
+const renderBans     = (color) => renderPickBans('ban', color);
+const renderPicks    = (color) => renderPickBans('pick', color);
 
 const protectMap = (bm, color) => {
     if (bm.beatmap.mods.includes('TB')) return;
 
-    const protects = color == 'red' ? red_protects : blue_protects;
+    const protects = color === 'red' ? red_protects : blue_protects;
+
+    if (protects.size >= (mappool.protects || 0)) return;
+
     if (!protects.has(bm)) {
         protects.add(bm);
-        console.log(`#${color}_protect_${protects.size - 1}_text`);
-        $(`#${color}_protect_${protects.size - 1}_text`).text(bm.beatmap.identifier);
-        $(`#${color}_protect_${protects.size - 1}_bg`).css('background-image', bm.image.css('background-image'));
+        renderProtects(color);
     }
 };
 
@@ -376,10 +401,20 @@ const resetMap = bm => {
     bm.mod_icon.removeClass('banned');
     bm.banned_label.removeClass('visible');
     selectedMaps = selectedMaps.filter(e => e !== bm.beatmapID);
-    red_picks.delete(bm);
-    blue_picks.delete(bm);
-    red_protects.delete(bm);
-    blue_protects.delete(bm);
+
+    // redraw side(s) that changed
+    let changed = { red: false, blue: false };
+
+    if (red_picks.delete(bm))  changed.red  = true;
+    if (blue_picks.delete(bm)) changed.blue = true;
+    if (red_protects.delete(bm))  changed.red  = true;
+    if (blue_protects.delete(bm)) changed.blue = true;
+    if (red_bans?.delete && red_bans.delete(bm))    changed.red  = true;
+    if (blue_bans?.delete && blue_bans.delete(bm))  changed.blue = true;
+
+    if (changed.red)  { renderPicks('red');  renderProtects('red');  renderBans('red'); }
+    if (changed.blue) { renderPicks('blue'); renderProtects('blue'); renderBans('blue'); }
+
 };
 
 const switchPick = color => {
