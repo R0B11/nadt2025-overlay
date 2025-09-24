@@ -1,0 +1,125 @@
+body,
+html {
+	padding: 0;
+	margin: 0;
+	overflow-y: hidden;
+	font-family: 'Uniwars';
+	font-weight: 400;
+}
+
+.main {
+	position: relative;
+	width: 1920px;
+	height: 1080px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	color: var(--light);
+}
+
+.main::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: -10;
+	background-image: url('teamwin-mockup.png');
+	opacity: 0;
+	filter: brightness(0.2);
+}
+
+.main::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: -9;
+	background-image: url('../_shared/assets/win-background.png');
+	opacity: 1;
+}
+
+.stage-container {
+	position: absolute;
+	bottom: 98.5px;
+	right: 103px;
+	color: var(--accent-yellow);
+	font-size: 18px;
+}
+
+.stage-container::before {
+	content: '[';
+}
+
+.stage-container::after {
+	content: ']';
+}
+
+.match-winner {
+	position: absolute;
+	top: 400px;
+	font-size: 68px;
+	font-weight: 600;
+	font-style: italic;
+	color: var(--accent-yellow);
+}
+
+.matchup {
+	position: absolute;
+	top: 510px;
+	display: flex;
+	flex-direction: column;
+	gap: 48px;
+}
+
+.matchup-header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 32px;
+}
+
+.team-name {
+	width: 800px;
+	font-size: 48px;
+	font-weight: bold;
+}
+
+.team-name.red {
+	text-align: right;
+}
+
+.matchup-players {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 32px;
+	font-size: 24px;
+}
+
+.players {
+	width: 800px;
+	display: flex;
+	flex-direction: column;
+}
+
+.players.red {
+	align-items: flex-end;
+}
+
+.separator {
+	width: 28px;
+}
+
+.timer {
+	position: absolute;
+	top: 700px;
+	font-size: 68px;
+	font-weight: 600;
+	font-style: italic;
+	color: var(--accent-yellow);
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="../_shared/common.css">
+	<script src="../_shared/deps/jquery.min.js"></script>
+	<script src="../_shared/deps/reconnecting-websocket.min.js"></script>
+	<script src="../_shared/utils.js"></script>
+	<script src="https://kit.fontawesome.com/3f04b9f9c1.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+	<div class="main">
+		<div class="stage-container" id="stage_name"></div>
+		<div class="match-winner">COMING UP</div>
+		<div class="matchup">
+			<div class="matchup-header">
+				<div class="team-name red" id="red_team">Team 1 Long Name</div>
+				<div class="vs">vs</div>
+				<div class="team-name blue" id="blue_team">Team 2</div>
+			</div>
+			<div class="matchup-players">
+				<div class="players red" id="red_players">
+				</div>
+				<div class="separator"></div>
+				<div class="players blue" id="blue_players"></div>
+			</div>
+		</div>
+		<div class="timer" id="timer">00:00</div>
+	</div>
+	<script src="index.js"></script>
+</body>
+
+</html>
